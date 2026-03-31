@@ -30,6 +30,7 @@ export default function CreateTab() {
     price: "",
     condition: "Good",
     description: "",
+    seller_name: "",
   });
 
   const addVideo = useAddVideo();
@@ -69,9 +70,10 @@ export default function CreateTab() {
     if (
       !bookForm.title.trim() ||
       !bookForm.author.trim() ||
-      !bookForm.price.trim()
+      !bookForm.price.trim() ||
+      !bookForm.seller_name.trim()
     ) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please fill in all required fields including your name");
       return;
     }
     try {
@@ -82,9 +84,9 @@ export default function CreateTab() {
         price: bookForm.price,
         condition: bookForm.condition,
         description: bookForm.description,
-        seller_name: "Current User",
+        seller_name: bookForm.seller_name,
       });
-      toast.success("Book listing created successfully!");
+      toast.success("Book listed successfully!");
       setBookForm({
         title: "",
         author: "",
@@ -92,6 +94,7 @@ export default function CreateTab() {
         price: "",
         condition: "Good",
         description: "",
+        seller_name: "",
       });
     } catch {
       toast.error("Failed to create listing");
@@ -306,6 +309,21 @@ export default function CreateTab() {
               <h2 className="font-bold text-foreground text-xl mb-1">
                 List Textbook for Sale
               </h2>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-sm">
+                  Your Name (Seller) *
+                </Label>
+                <Input
+                  data-ocid="create.seller_name.input"
+                  value={bookForm.seller_name}
+                  onChange={(e) =>
+                    setBookForm((p) => ({ ...p, seller_name: e.target.value }))
+                  }
+                  placeholder="Enter your name"
+                  className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground text-sm">

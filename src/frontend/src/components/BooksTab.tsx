@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Search, Tag } from "lucide-react";
+import { BookOpen, PlusCircle, Search, Tag } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import type { Textbook } from "../backend.d";
@@ -21,100 +21,10 @@ const CONDITION_COLORS: Record<string, string> = {
   Poor: "bg-red-500/20 text-red-300 border-red-500/30",
 };
 
-const BOOK_COVERS = [
-  "/assets/generated/book-cover-1.dim_240x320.jpg",
-  "/assets/generated/book-cover-2.dim_240x320.jpg",
-];
-
-const SAMPLE_BOOKS: Array<[bigint, Textbook]> = [
-  [
-    1n,
-    {
-      title: "Calculus: Early Transcendentals, 9th Edition",
-      author: "James Stewart",
-      subject: "Mathematics",
-      price: "4099",
-      condition: "Good",
-      description:
-        "Comprehensive calculus textbook covering single and multivariable calculus with applications.",
-      seller_name: "Emma Johnson",
-    },
-  ],
-  [
-    2n,
-    {
-      title: "Introduction to Algorithms (CLRS)",
-      author: "Cormen, Leiserson, Rivest",
-      subject: "Programming",
-      price: "5400",
-      condition: "Excellent",
-      description:
-        "The definitive algorithms textbook. Covers sorting, searching, graph algorithms and more.",
-      seller_name: "DevStudent99",
-    },
-  ],
-  [
-    3n,
-    {
-      title: "Biology: The Science of Life",
-      author: "Robert Wallace",
-      subject: "Science",
-      price: "180",
-      condition: "Fair",
-      description:
-        "Introductory biology covering cell theory, genetics, evolution, and ecology.",
-      seller_name: "BiologyMajor",
-    },
-  ],
-  [
-    4n,
-    {
-      title: "A Brief History of Time",
-      author: "Stephen Hawking",
-      subject: "Science",
-      price: "250",
-      condition: "Good",
-      description:
-        "Classic popular science book exploring time, black holes, and the Big Bang.",
-      seller_name: "PhysicsNerd",
-    },
-  ],
-  [
-    5n,
-    {
-      title: "The Elements of Style",
-      author: "Strunk & White",
-      subject: "Languages",
-      price: "120",
-      condition: "Excellent",
-      description: "Timeless guide to English composition and writing style.",
-      seller_name: "LitMajor",
-    },
-  ],
-  [
-    6n,
-    {
-      title: "World History: Patterns of Interaction",
-      author: "Beck, Black, Krieger",
-      subject: "History",
-      price: "350",
-      condition: "Good",
-      description:
-        "Comprehensive world history textbook with maps, primary sources, and analysis.",
-      seller_name: "HistoryBuff",
-    },
-  ],
-];
-
-function BookCard({
-  id,
-  book,
-  index,
-}: { id: bigint; book: Textbook; index: number }) {
+function BookCard({ book, index }: { book: Textbook; index: number }) {
   const condClass =
     CONDITION_COLORS[book.condition] ??
     "bg-secondary text-muted-foreground border-border";
-  const cover = BOOK_COVERS[Number(id) % BOOK_COVERS.length];
 
   return (
     <motion.div
@@ -124,13 +34,9 @@ function BookCard({
       data-ocid={`books.item.${index + 1}`}
       className="bg-card border border-border rounded-2xl p-4 flex gap-4 hover:border-primary/40 hover:shadow-glow transition-all duration-200 cursor-pointer group"
     >
-      {/* Cover */}
-      <div className="flex-shrink-0 w-16 h-24 rounded-xl overflow-hidden bg-secondary">
-        <img
-          src={cover}
-          alt={book.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+      {/* Icon placeholder */}
+      <div className="flex-shrink-0 w-16 h-24 rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
+        <BookOpen className="h-8 w-8 text-muted-foreground/40" />
       </div>
 
       {/* Info */}
@@ -140,10 +46,12 @@ function BookCard({
         </h3>
         <p className="text-muted-foreground text-xs mb-2">{book.author}</p>
         <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Tag className="h-3 w-3" />
-            {book.subject}
-          </span>
+          {book.subject ? (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Tag className="h-3 w-3" />
+              {book.subject}
+            </span>
+          ) : null}
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded-full border ${condClass}`}
           >
@@ -158,6 +66,11 @@ function BookCard({
             by {book.seller_name}
           </span>
         </div>
+        {book.description ? (
+          <p className="text-muted-foreground/70 text-xs mt-2 line-clamp-2">
+            {book.description}
+          </p>
+        ) : null}
       </div>
     </motion.div>
   );
@@ -168,8 +81,7 @@ export default function BooksTab() {
   const [priceFilter, setPriceFilter] = useState("All");
   const { data: backendBooks, isLoading } = useGetBooks();
 
-  const allBooks =
-    backendBooks && backendBooks.length > 0 ? backendBooks : SAMPLE_BOOKS;
+  const allBooks = backendBooks ?? [];
 
   const filtered = useMemo(() => {
     let list = allBooks;
@@ -207,7 +119,7 @@ export default function BooksTab() {
           Textbook <span className="text-primary">Marketplace</span>
         </h1>
         <p className="text-muted-foreground">
-          Find affordable textbooks from fellow students
+          Buy and sell textbooks listed by owners
         </p>
       </motion.div>
 
@@ -246,9 +158,11 @@ export default function BooksTab() {
       </div>
 
       {/* Count */}
-      <p className="text-muted-foreground text-sm mb-4">
-        {filtered.length} {filtered.length === 1 ? "book" : "books"} available
-      </p>
+      {!isLoading && allBooks.length > 0 && (
+        <p className="text-muted-foreground text-sm mb-4">
+          {filtered.length} {filtered.length === 1 ? "book" : "books"} available
+        </p>
+      )}
 
       {/* Grid */}
       {isLoading ? (
@@ -256,7 +170,7 @@ export default function BooksTab() {
           data-ocid="books.loading_state"
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          {["a", "b", "c", "d", "e", "f"].map((k) => (
+          {["a", "b", "c", "d"].map((k) => (
             <div
               key={`skel-book-${k}`}
               className="bg-card border border-border rounded-2xl p-4 flex gap-4"
@@ -270,9 +184,30 @@ export default function BooksTab() {
             </div>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : allBooks.length === 0 ? (
         <div
           data-ocid="books.empty_state"
+          className="flex flex-col items-center justify-center py-24 text-center"
+        >
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+            <BookOpen className="h-10 w-10 text-primary/60" />
+          </div>
+          <p className="text-foreground text-xl font-bold mb-2">
+            No books listed yet
+          </p>
+          <p className="text-muted-foreground text-sm max-w-xs leading-relaxed mb-6">
+            Be the first to list your textbook! Go to the{" "}
+            <span className="text-primary font-semibold">Create</span> tab and
+            sell your books to fellow students.
+          </p>
+          <div className="flex items-center gap-2 text-primary text-sm font-medium">
+            <PlusCircle className="h-4 w-4" />
+            List your book in the Create tab
+          </div>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div
+          data-ocid="books.no_results_state"
           className="flex flex-col items-center justify-center py-20 text-center"
         >
           <BookOpen className="h-16 w-16 text-muted-foreground/30 mb-4" />
@@ -286,7 +221,7 @@ export default function BooksTab() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map(([id, book], i) => (
-            <BookCard key={id.toString()} id={id} book={book} index={i} />
+            <BookCard key={id.toString()} book={book} index={i} />
           ))}
         </div>
       )}

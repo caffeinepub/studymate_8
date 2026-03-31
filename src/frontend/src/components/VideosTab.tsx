@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -8,14 +7,19 @@ import {
   PlayCircle,
   TrendingUp,
   User,
+  Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import type { Video } from "../backend.d";
 import { useGetVideos } from "../hooks/useQueries";
 
 interface Props {
   searchQuery: string;
+  credits: number;
+  spendCredits: (n: number) => boolean;
+  VIDEO_COST: number;
 }
 
 const CATEGORIES = [
@@ -43,11 +47,33 @@ const SUBJECT_COLORS: Record<string, string> = {
   Arts: "bg-orange-500/20 text-orange-300 border-orange-500/30",
 };
 
-function VideoCard({ video, index }: { video: Video; index: number }) {
+function VideoCard({
+  video,
+  index,
+  spendCredits,
+  VIDEO_COST,
+}: {
+  video: Video;
+  index: number;
+  spendCredits: (n: number) => boolean;
+  VIDEO_COST: number;
+}) {
   const subjectClass =
     SUBJECT_COLORS[video.subject] ??
     "bg-secondary text-muted-foreground border-border";
   const thumb = video.thumbnail_url || null;
+
+  const handlePlay = () => {
+    const success = spendCredits(VIDEO_COST);
+    if (!success) {
+      toast.error(
+        `Not enough CP! You need ${VIDEO_COST} CP to watch this video.`,
+      );
+      return;
+    }
+    toast.success(`Now playing: ${video.title}`);
+    alert(`\u25b6 Playing: ${video.title}\n\n${video.description}`);
+  };
 
   return (
     <motion.div
@@ -81,11 +107,22 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
             {video.duration}
           </span>
         )}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all duration-200">
+        {/* CP cost badge on thumbnail */}
+        <span className="absolute top-2 left-2 flex items-center gap-0.5 bg-black/70 border border-amber-500/40 text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">
+          <Zap className="h-3 w-3 fill-amber-400" />
+          {VIDEO_COST} CP
+        </span>
+        {/* Play overlay - accessible button */}
+        <button
+          type="button"
+          aria-label={`Play ${video.title}`}
+          onClick={handlePlay}
+          className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all duration-200 w-full"
+        >
           <div className="w-12 h-12 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-200 shadow-glow">
             <PlayCircle className="h-6 w-6 text-primary-foreground fill-primary-foreground" />
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Info */}
@@ -110,9 +147,15 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
           </span>
           <button
             type="button"
-            className="w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-primary/80 transition-colors"
+            data-ocid="videos.play.button"
+            onClick={handlePlay}
+            className="flex items-center gap-1 bg-primary hover:bg-primary/80 transition-colors rounded-full px-2.5 py-1"
           >
             <PlayCircle className="h-3.5 w-3.5 text-primary-foreground" />
+            <span className="text-primary-foreground text-xs font-semibold flex items-center gap-0.5">
+              <Zap className="h-3 w-3 fill-amber-300 text-amber-300" />
+              {VIDEO_COST}
+            </span>
           </button>
         </div>
       </div>
@@ -120,7 +163,12 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
   );
 }
 
-export default function VideosTab({ searchQuery }: Props) {
+export default function VideosTab({
+  searchQuery,
+  credits,
+  spendCredits,
+  VIDEO_COST,
+}: Props) {
   const [category, setCategory] = useState("All");
   const [mentor, setMentor] = useState("All Mentors");
   const { data: backendVideos, isLoading } = useGetVideos();
@@ -158,10 +206,22 @@ export default function VideosTab({ searchQuery }: Props) {
           <br />
           <span className="text-primary">Learning Potential</span>
         </h1>
-        <p className="text-muted-foreground text-lg mb-6 max-w-xl">
+        <p className="text-muted-foreground text-lg mb-4 max-w-xl">
           Curated educational content from world-class educators. Learn at your
           own pace, anytime, anywhere.
         </p>
+        {/* Credits info bar */}
+        <div className="flex items-center gap-2 mb-6">
+          <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1.5">
+            <Zap className="h-4 w-4 text-amber-400 fill-amber-400" />
+            <span className="text-amber-400 font-bold text-sm">
+              {credits} CP available
+            </span>
+          </div>
+          <span className="text-muted-foreground text-sm">
+            &middot; Each video costs {VIDEO_COST} CP
+          </span>
+        </div>
         <Button
           data-ocid="videos.browse.primary_button"
           className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-3 font-bold text-sm tracking-wide shadow-glow"
@@ -256,7 +316,13 @@ export default function VideosTab({ searchQuery }: Props) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {filtered.map(([id, video], i) => (
-                <VideoCard key={id.toString()} video={video} index={i} />
+                <VideoCard
+                  key={id.toString()}
+                  video={video}
+                  index={i}
+                  spendCredits={spendCredits}
+                  VIDEO_COST={VIDEO_COST}
+                />
               ))}
             </div>
           )}

@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, GraduationCap } from "lucide-react";
+import { BookOpen, GraduationCap, Zap } from "lucide-react";
 import { motion } from "motion/react";
 
 const SUBJECTS = ["Mathematics", "Science", "English", "General Knowledge"];
@@ -10,6 +10,8 @@ const MENTORS = [
   { name: "Aman Adhikari", initials: "AA", color: "bg-green-500" },
   { name: "Hemraj Gupta", initials: "HG", color: "bg-purple-500" },
 ];
+
+const VIDEO_COST = 2;
 
 function MentorCard({
   mentor,
@@ -43,10 +45,16 @@ function MentorCard({
         </div>
       </div>
 
-      {/* Badge */}
-      <Badge className="self-start bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 text-xs font-medium">
-        Available for all subjects
-      </Badge>
+      {/* Badges */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Badge className="bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 text-xs font-medium">
+          Available for all subjects
+        </Badge>
+        <span className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold px-2 py-0.5 rounded-full">
+          <Zap className="h-3 w-3 fill-amber-400" />
+          Videos cost {VIDEO_COST} CP each
+        </span>
+      </div>
 
       {/* Subjects */}
       <div>

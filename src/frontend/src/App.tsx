@@ -13,6 +13,7 @@ import {
   PlayCircle,
   Search,
   User,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import BooksTab from "./components/BooksTab";
@@ -20,6 +21,7 @@ import CreateTab from "./components/CreateTab";
 import MentorsTab from "./components/MentorsTab";
 import ProfileTab from "./components/ProfileTab";
 import VideosTab from "./components/VideosTab";
+import { useCreditSystem } from "./hooks/useCreditSystem";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useIsAdmin } from "./hooks/useQueries";
 
@@ -30,6 +32,14 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const { data: isAdmin } = useIsAdmin();
+  const {
+    credits,
+    spendCredits,
+    submitFeedback,
+    feedbackGiven,
+    VIDEO_COST,
+    FEEDBACK_REWARD,
+  } = useCreditSystem();
 
   const isLoggedIn = loginStatus === "success" && !!identity;
   const principal = identity?.getPrincipal().toString();
@@ -143,6 +153,18 @@ export default function App() {
               />
             </div>
 
+            {/* CP Badge */}
+            <div
+              data-ocid="header.credits.panel"
+              className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 cursor-default"
+              title="Credit Points"
+            >
+              <Zap className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+              <span className="text-amber-400 font-bold text-xs">
+                {credits} CP
+              </span>
+            </div>
+
             <button
               type="button"
               className="relative w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -204,11 +226,25 @@ export default function App() {
 
       {/* Tab content */}
       <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-8">
-        {activeTab === "videos" && <VideosTab searchQuery={searchQuery} />}
+        {activeTab === "videos" && (
+          <VideosTab
+            searchQuery={searchQuery}
+            credits={credits}
+            spendCredits={spendCredits}
+            VIDEO_COST={VIDEO_COST}
+          />
+        )}
         {activeTab === "books" && <BooksTab />}
         {activeTab === "create" && isAdmin && <CreateTab />}
         {activeTab === "mentors" && <MentorsTab />}
-        {activeTab === "profile" && <ProfileTab />}
+        {activeTab === "profile" && (
+          <ProfileTab
+            credits={credits}
+            submitFeedback={submitFeedback}
+            feedbackGiven={feedbackGiven}
+            FEEDBACK_REWARD={FEEDBACK_REWARD}
+          />
+        )}
       </main>
 
       <footer

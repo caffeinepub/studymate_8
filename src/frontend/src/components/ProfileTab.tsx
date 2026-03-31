@@ -1,19 +1,36 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   BookOpen,
+  CheckCircle,
   ChevronRight,
   HelpCircle,
   Info,
   LogIn,
+  MessageSquare,
   PlayCircle,
   Settings,
+  Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useState } from "react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useGetBooks, useGetVideos } from "../hooks/useQueries";
 
-export default function ProfileTab() {
+interface Props {
+  credits: number;
+  submitFeedback: (text: string) => boolean;
+  feedbackGiven: boolean;
+  FEEDBACK_REWARD: number;
+}
+
+export default function ProfileTab({
+  credits,
+  submitFeedback,
+  feedbackGiven,
+  FEEDBACK_REWARD,
+}: Props) {
   const { login, loginStatus, identity, clear } = useInternetIdentity();
   const isLoggedIn = loginStatus === "success" && !!identity;
   const principal = identity?.getPrincipal().toString() ?? "";
@@ -24,6 +41,9 @@ export default function ProfileTab() {
 
   const { data: videos } = useGetVideos();
   const { data: books } = useGetBooks();
+
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(feedbackGiven);
 
   const myVideos =
     videos?.filter(([, v]) => v.creator_name === "Current User") ?? [];
@@ -47,6 +67,14 @@ export default function ProfileTab() {
       ocid: "profile.about.button",
     },
   ];
+
+  const handleFeedbackSubmit = () => {
+    if (feedbackText.trim().length < 10) return;
+    const success = submitFeedback(feedbackText);
+    if (success) {
+      setFeedbackSubmitted(true);
+    }
+  };
 
   if (!isLoggedIn) {
     return (
@@ -105,7 +133,7 @@ export default function ProfileTab() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 gap-4 mb-8"
+        className="grid grid-cols-3 gap-4 mb-8"
       >
         <div className="bg-card border border-border rounded-2xl p-5 text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
@@ -125,6 +153,91 @@ export default function ProfileTab() {
           </p>
           <p className="text-muted-foreground text-sm">Books Listed</p>
         </div>
+        {/* CP Balance card */}
+        <div
+          data-ocid="profile.credits.card"
+          className="bg-card border border-amber-500/30 rounded-2xl p-5 text-center"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(10,6,8,0.9) 100%)",
+          }}
+        >
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Zap className="h-5 w-5 text-amber-400 fill-amber-400" />
+          </div>
+          <p className="text-3xl font-bold text-amber-400 mb-1">{credits}</p>
+          <p className="text-muted-foreground text-sm">CP Balance</p>
+        </div>
+      </motion.div>
+
+      {/* Feedback section */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        data-ocid="profile.feedback.panel"
+        className="bg-card border border-border rounded-2xl p-6 mb-6"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+            <MessageSquare className="h-4 w-4 text-amber-400" />
+          </div>
+          <div>
+            <h3 className="font-bold text-foreground text-sm">
+              Share Your Feedback
+            </h3>
+            {!feedbackSubmitted && (
+              <p className="text-amber-400 text-xs font-semibold flex items-center gap-1 mt-0.5">
+                <Zap className="h-3 w-3 fill-amber-400" />
+                Earn {FEEDBACK_REWARD} CP by sharing your feedback!
+              </p>
+            )}
+          </div>
+        </div>
+
+        {feedbackSubmitted ? (
+          <div
+            data-ocid="profile.feedback.success_state"
+            className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-xl p-4"
+          >
+            <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-green-400 font-semibold text-sm">
+                Thanks! +{FEEDBACK_REWARD} CP added to your balance.
+              </p>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Your feedback helps us improve StudyMate.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <Textarea
+              data-ocid="profile.feedback.textarea"
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              placeholder="Share your thoughts about StudyMate… (min. 10 characters)"
+              className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground resize-none min-h-[96px]"
+            />
+            <div className="flex items-center justify-between">
+              <span
+                className={`text-xs ${feedbackText.length >= 10 ? "text-green-400" : "text-muted-foreground"}`}
+              >
+                {feedbackText.length} / 10 min chars
+              </span>
+              <Button
+                data-ocid="profile.feedback.submit_button"
+                onClick={handleFeedbackSubmit}
+                disabled={feedbackText.trim().length < 10}
+                size="sm"
+                className="bg-amber-500 hover:bg-amber-500/90 text-black font-bold rounded-full px-4"
+              >
+                <Zap className="h-3.5 w-3.5 mr-1 fill-black" />
+                Submit & Earn {FEEDBACK_REWARD} CP
+              </Button>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Menu */}
