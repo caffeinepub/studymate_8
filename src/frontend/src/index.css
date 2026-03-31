@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/assets/fonts/PlusJakartaSans.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.875rem;
+    /* Dark StudyMate theme — burgundy/navy */
+    --background: 0.13 0.018 15;
+    --foreground: 0.985 0 0;
+    --card: 0.185 0.015 256;
+    --card-foreground: 0.985 0 0;
+    --popover: 0.2 0.015 256;
+    --popover-foreground: 0.985 0 0;
+    --primary: 0.49 0.22 26;
+    --primary-foreground: 0.985 0 0;
+    --secondary: 0.245 0.015 256;
+    --secondary-foreground: 0.985 0 0;
+    --muted: 0.245 0.012 256;
+    --muted-foreground: 0.62 0.013 256;
+    --accent: 0.49 0.22 26;
+    --accent-foreground: 0.985 0 0;
+    --destructive: 0.49 0.22 26;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.28 0.015 256;
+    --input: 0.28 0.015 256;
+    --ring: 0.49 0.22 26;
+    --chart-1: 0.49 0.22 26;
+    --chart-2: 0.6 0.118 184;
+    --chart-3: 0.398 0.07 227;
+    --chart-4: 0.828 0.189 84;
+    --chart-5: 0.769 0.188 70;
+    --sidebar: 0.165 0.015 256;
+    --sidebar-foreground: 0.985 0 0;
+    --sidebar-primary: 0.49 0.22 26;
+    --sidebar-primary-foreground: 0.985 0 0;
+    --sidebar-accent: 0.245 0.015 256;
+    --sidebar-accent-foreground: 0.985 0 0;
+    --sidebar-border: 0.28 0.015 256;
+    --sidebar-ring: 0.49 0.22 26;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-foreground;
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    min-height: 100vh;
+    background-color: #09060e;
+    /* Radial warm amber glow at center */
+    background-image: radial-gradient(
+        ellipse 70% 50% at 50% 30%,
+        rgba(180, 60, 20, 0.18) 0%,
+        transparent 70%
+      ), /* Cool deep blue in lower half */
+      radial-gradient(
+        ellipse 80% 60% at 30% 90%,
+        rgba(10, 20, 80, 0.55) 0%,
+        transparent 70%
+      ), /* Subtle teal shimmer top-right */
+      radial-gradient(
+        ellipse 50% 40% at 85% 15%,
+        rgba(10, 60, 100, 0.22) 0%,
+        transparent 65%
+      ), /* Base diagonal gradient */
+      linear-gradient(
+        158deg,
+        #1c0b12 0%,
+        #100c22 35%,
+        #08122e 65%,
+        #05172f 100%
+      );
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("/assets/generated/open-book-logo-transparent.dim_400x400.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 620px 620px;
+    opacity: 0.055;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+}
